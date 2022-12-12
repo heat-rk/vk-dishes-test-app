@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "VkDishesTestApp"
-include ':app'
+include(":app")
