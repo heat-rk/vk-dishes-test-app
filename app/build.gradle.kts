@@ -3,6 +3,7 @@ plugins {
     id(AppPlugins.androidKotlin)
     id(AppPlugins.kotlinKapt)
     id(AppPlugins.hilt)
+    id(AppPlugins.detekt) version AppPlugins.Versions.detekt
 }
 
 android {
@@ -28,6 +29,21 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+
+    detekt {
+        buildUponDefaultConfig = true
+        allRules = false
+        autoCorrect = true
+        config = files("${rootProject.rootDir}/detekt-config.yml")
+    }
+
+    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+        jvmTarget = "1.8"
+    }
+
+    tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
+        jvmTarget = "1.8"
     }
 
     compileOptions {

@@ -45,5 +45,6 @@ object AppDependencies {
         const val coroutines = "1.6.4"
         const val turbine = "0.9.0"
         const val hilt = "2.42"
+        const val detekt = "1.22.0"
     }
 }

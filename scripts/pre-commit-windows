@@ -1,0 +1,10 @@
+#!C:/Program\ Files/Git/usr/bin/sh.exe
+
+echo "Running detekt check..."
+
+./gradlew detekt
+
+status=$?
+[ $status -ne 0 ] && exit 1
+
+exit 0

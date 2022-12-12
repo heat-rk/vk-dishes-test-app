@@ -1,5 +1,11 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
+fun DependencyHandler.detekt(dependencies: Array<String>) {
+    dependencies.forEach { dependency ->
+        add("detekt", dependency)
+    }
+}
+
 fun DependencyHandler.kapt(dependencies: Array<String>) {
     dependencies.forEach { dependency ->
         add("kapt", dependency)
