@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_application"
@@ -9,6 +10,24 @@
         android:id="@+id/dishListFragment"
         android:name="com.nlmk.libs.vkdishestestapp.presentation.screens.dish_list.DishListFragment"
         android:label="@string/dishes"
-        tools:layout="@layout/fragment_dish_list" />
+        tools:layout="@layout/fragment_dish_list" >
+
+        <action
+            android:id="@+id/action_dishListFragment_to_dishDetailFragment"
+            app:destination="@id/dishDetailFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/dishDetailFragment"
+        android:name="com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetailFragment"
+        android:label="{name}"
+        tools:layout="@layout/fragment_dish_detail">
+
+        <argument
+            android:name="name"
+            app:argType="string" />
+
+    </fragment>
 
 </navigation>

@@ -1,9 +1,6 @@
 package com.nlmk.libs.vkdishestestapp.di
 
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.DeleteDishesUseCase
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.DeleteDishesUseCaseImpl
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishesUseCase
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishesUseCaseImpl
+import com.nlmk.libs.vkdishestestapp.domain.use_cases.*
 import dagger.Binds
 import dagger.Module
 import dagger.Reusable
@@ -13,6 +10,10 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 interface UseCasesModule {
+    @Binds
+    @Reusable
+    fun bindFetchDishUseCase(impl: FetchDishUseCaseImpl): FetchDishUseCase
+
     @Binds
     @Reusable
     fun bindFetchDishesUseCase(impl: FetchDishesUseCaseImpl): FetchDishesUseCase

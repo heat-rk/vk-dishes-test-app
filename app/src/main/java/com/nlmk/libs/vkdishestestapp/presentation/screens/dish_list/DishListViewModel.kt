@@ -3,14 +3,12 @@ package com.nlmk.libs.vkdishestestapp.presentation.screens.dish_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nlmk.libs.vkdishestestapp.converters.ModelConverter
-import com.nlmk.libs.vkdishestestapp.di.annotations.IoDispatcher
 import com.nlmk.libs.vkdishestestapp.domain.models.Dish
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.DeleteDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.utils.RequestResult
 import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
 import com.nlmk.libs.vkdishestestapp.utils.strRes
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,14 +16,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import ru.heatalways.vkdishestestapp.R
-import javax.inject.Inject
 
-@HiltViewModel
-class DishListViewModel @Inject constructor(
+class DishListViewModel(
     private val fetchDishesUseCase: FetchDishesUseCase,
     private val deleteDishesUseCase: DeleteDishesUseCase,
     private val dishToListItemConverter: ModelConverter<Dish, DishListItem>,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher
 ): ViewModel() {
 
     private val _state = MutableStateFlow(DishListViewState())
@@ -45,29 +41,39 @@ class DishListViewModel @Inject constructor(
         fetchDishes()
     }
 
-    fun handleIntent(intent: DishListIntent) = when (intent) {
-        DishListIntent.OnScrolledToBottom ->
-            loadNextPage()
+    fun handleIntent(intent: DishListIntent) {
+        when (intent) {
+            DishListIntent.OnScrolledToBottom ->
+                onScrolledToLastPage()
 
-        DishListIntent.SwipeRefresh ->
-            swipeRefreshDishes()
+            DishListIntent.SwipeRefresh ->
+                onSwipeRefresh()
 
-        is DishListIntent.OnDishCheckedChange ->
-            onDishCheckedChange(intent.id, intent.isChecked)
+            is DishListIntent.OnDishCheckedChange ->
+                onDishCheckedChange(intent.id, intent.isChecked)
 
-        is DishListIntent.OnDishClick -> TODO()
+            is DishListIntent.OnDishClick ->
+                onDishClick(intent.id)
 
-        is DishListIntent.OnButtonClick ->
-            handleButtonClick(intent.id)
-    }
-
-    private fun handleButtonClick(id: String) {
-        if (state.value.deleteDishesButton.id == id) {
-            deleteSelectedDishes()
+            is DishListIntent.OnButtonClick ->
+                onButtonClick(intent.id)
         }
     }
 
-    private fun swipeRefreshDishes() {
+    private fun onDishClick(id: String) = viewModelScope.launch {
+        _sideEffects.send(DishListSideEffect.NavigateToDetail(
+            id = id,
+            name = state.value.dishes.find { it.id == id }?.name ?: strRes("-")
+        ))
+    }
+
+    private fun onButtonClick(id: String) {
+        if (state.value.deleteDishesButton.id == id) {
+            onDeleteButtonClick()
+        }
+    }
+
+    private fun onSwipeRefresh() {
         loadingJob?.cancel()
         loadingJob = null
 
@@ -83,10 +89,54 @@ class DishListViewModel @Inject constructor(
         fetchDishes()
     }
 
-    private fun loadNextPage() {
+    private fun onScrolledToLastPage() {
         if (isPaginationAvailable) {
             fetchDishes()
         }
+    }
+
+    private fun onDishCheckedChange(id: String, isChecked: Boolean) {
+        _state.update { state ->
+            state.copy(
+                dishes = state.dishes.map {
+                    if (it.id == id) it.copy(isChecked = isChecked)
+                    else it
+                }
+            )
+        }
+    }
+
+    private fun onDeleteButtonClick() = viewModelScope.launch {
+        setDishesDeleting(true)
+
+        val dishesToDelete = state.value.dishes
+            .filter { it.isChecked }
+            .map { it.id }
+
+        val result = withContext(ioDispatcher) {
+            deleteDishesUseCase.invoke(dishesToDelete)
+        }
+
+        when (result) {
+            is RequestResult.Success -> {
+                _state.update { state ->
+                    val dishes = state.dishes.filter { it.id !in result.value }
+
+                    state.copy(
+                        dishes = dishes,
+                        error = if (dishes.isEmpty()) strRes(R.string.list_empty) else null
+                    )
+                }
+
+                _sideEffects.send(DishListSideEffect.Message(strRes(R.string.dishes_delete_success)))
+            }
+
+            is RequestResult.Failure -> {
+                _sideEffects.send(DishListSideEffect.Message(strRes(R.string.something_went_wrong)))
+            }
+        }
+
+        setDishesDeleting(false)
     }
 
     private fun fetchDishes() = launchLoadingJob {
@@ -121,50 +171,6 @@ class DishListViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun onDishCheckedChange(id: String, isChecked: Boolean) {
-        _state.update { state ->
-            state.copy(
-                dishes = state.dishes.map {
-                    if (it.id == id) it.copy(isChecked = isChecked)
-                    else it
-                }
-            )
-        }
-    }
-
-    private fun deleteSelectedDishes() = viewModelScope.launch {
-        setDishesDeleting(true)
-
-        val dishesToDelete = state.value.dishes
-            .filter { it.isChecked }
-            .map { it.id }
-
-        val result = withContext(ioDispatcher) {
-            deleteDishesUseCase.invoke(dishesToDelete)
-        }
-
-        when (result) {
-            is RequestResult.Success -> {
-                _state.update { state ->
-                    val dishes = state.dishes.filter { it.id !in result.value }
-
-                    state.copy(
-                        dishes = dishes,
-                        error = if (dishes.isEmpty()) strRes(R.string.list_empty) else null
-                    )
-                }
-
-                _sideEffects.send(DishListSideEffect.Message(strRes(R.string.dishes_delete_success)))
-            }
-
-            is RequestResult.Failure -> {
-                _sideEffects.send(DishListSideEffect.Message(strRes(R.string.something_went_wrong)))
-            }
-        }
-
-        setDishesDeleting(false)
     }
 
     private fun setDishesDeleting(isDeleting: Boolean) {

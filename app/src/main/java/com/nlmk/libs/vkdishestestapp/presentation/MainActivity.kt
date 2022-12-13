@@ -9,14 +9,19 @@ import ru.heatalways.vkdishestestapp.R
 
 @AndroidEntryPoint
 class MainActivity: AppCompatActivity(R.layout.activity_main) {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    private val navController by lazy(LazyThreadSafetyMode.NONE) {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
 
-        val navController = navHostFragment.navController
+        navHostFragment.navController
+    }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setupActionBarWithNavController(navController)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

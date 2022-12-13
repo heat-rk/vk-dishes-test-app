@@ -3,22 +3,34 @@ package com.nlmk.libs.vkdishestestapp.presentation.screens.dish_list
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.DishesAdapter
+import com.nlmk.libs.vkdishestestapp.presentation.screens.ViewModelsFactoryProvider
+import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetailFragment
 import com.nlmk.libs.vkdishestestapp.utils.getString
 import com.nlmk.libs.vkdishestestapp.utils.launchCollect
 import com.nlmk.libs.vkdishestestapp.utils.repeatOnStart
 import dagger.hilt.android.AndroidEntryPoint
 import ru.heatalways.vkdishestestapp.R
 import ru.heatalways.vkdishestestapp.databinding.FragmentDishListBinding
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class DishListFragment: Fragment(R.layout.fragment_dish_list) {
-    private val viewModel: DishListViewModel by viewModels()
+
+    @Inject
+    lateinit var viewModelsFactoryProvider: ViewModelsFactoryProvider
+
+    private val viewModel: DishListViewModel by viewModels(
+        factoryProducer = { viewModelsFactoryProvider.factory }
+    )
 
     private var _binding: FragmentDishListBinding? = null
     private val binding get() = requireNotNull(_binding)
@@ -26,10 +38,14 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
     private var _dishesAdapter: DishesAdapter? = null
     private val dishesAdapter get() = requireNotNull(_dishesAdapter)
 
+    private var _navController: NavController? = null
+    private val navController get() = requireNotNull(_navController)
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         _binding = FragmentDishListBinding.bind(view)
+        _navController = findNavController()
 
         _dishesAdapter = DishesAdapter(
             onDishClick = { id ->
@@ -75,6 +91,7 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
     }
 
     override fun onDestroyView() {
+        _navController = null
         _dishesAdapter = null
         _binding = null
         super.onDestroyView()
@@ -106,6 +123,16 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
                     requireContext().getString(sideEffect.message),
                     Toast.LENGTH_LONG
                 ).show()
+            }
+
+            is DishListSideEffect.NavigateToDetail -> {
+                navController.navigate(
+                    resId = R.id.action_dishListFragment_to_dishDetailFragment,
+                    args = bundleOf(
+                        DishDetailFragment.ID_KEY to sideEffect.id,
+                        DishDetailFragment.NAME_KEY to requireContext().getString(sideEffect.name)
+                    )
+                )
             }
         }
     }
