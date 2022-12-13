@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">VkDishesTestApp</string>
+
+    <string name="price_format">%1$d руб.</string>
+    <string name="dishes">Блюда</string>
+    <string name="delete_selected">Удалить выбранные</string>
+    <string name="loading">Загрузка…</string>
+    <string name="dishes_delete_success">Блюда успешно удалены!</string>
+    <string name="list_empty">Список пуст</string>
+
+    <!-- Errors -->
+    <string name="something_went_wrong">Что-то пошло не так :(</string>
+
+    <!-- Content descriptions -->
+    <string name="dish_image_content_description">Изображение блюда</string>
 </resources>

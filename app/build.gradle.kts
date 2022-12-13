@@ -54,6 +54,10 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -63,6 +67,7 @@ dependencies {
     implementation(AppDependencies.Glide.core)
     implementation(AppDependencies.Coroutines.allImplementations)
     implementation(AppDependencies.Hilt.core)
+    implementation(AppDependencies.swipeRefreshLayout)
 
     compileOnly(AppDependencies.Glide.compiler)
 

@@ -4,6 +4,7 @@ object AppDependencies {
     const val junit = "junit:junit:${Versions.junit}"
     const val junitExtensions = "androidx.test.ext:junit:${Versions.junitExtensions}"
     const val espressoCore = "androidx.test.espresso:espresso-core:${Versions.espresso}"
+    const val swipeRefreshLayout = "androidx.swiperefreshlayout:swiperefreshlayout:${Versions.swipeRefreshLayout}"
 
     object Glide {
         const val core = "com.github.bumptech.glide:glide:${Versions.glide}"
@@ -28,14 +29,16 @@ object AppDependencies {
 
     object Ktx {
         const val core = "androidx.core:core-ktx:${Versions.coreKtx}"
-        const val fragment = "androidx.navigation:navigation-fragment-ktx:${Versions.fragmentKtx}"
+        const val navigationFragment = "androidx.navigation:navigation-fragment-ktx:${Versions.navigation}"
+        const val navigationUi = "androidx.navigation:navigation-ui-ktx:${Versions.navigation}"
+        const val navigationRuntime = "androidx.navigation:navigation-runtime-ktx:${Versions.navigation}"
 
-        val allImplementations = arrayOf(core, fragment)
+        val allImplementations = arrayOf(core, navigationFragment, navigationUi, navigationRuntime)
     }
 
     object Versions {
         const val coreKtx = "1.9.0"
-        const val fragmentKtx = "2.5.1"
+        const val navigation = "2.5.1"
         const val appCompat = "1.5.1"
         const val material = "1.7.0"
         const val junit = "4.13.2"
@@ -46,5 +49,6 @@ object AppDependencies {
         const val turbine = "0.9.0"
         const val hilt = "2.42"
         const val detekt = "1.22.0"
+        const val swipeRefreshLayout = "1.1.0"
     }
 }

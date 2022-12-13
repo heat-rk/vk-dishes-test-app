@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dimens -->
+    <dimen name="inset_small">8dp</dimen>
+    <dimen name="inset_default">16dp</dimen>
+
+    <!-- Other -->
+    <dimen name="item_dish_image_size">48dp</dimen>
+</resources>
