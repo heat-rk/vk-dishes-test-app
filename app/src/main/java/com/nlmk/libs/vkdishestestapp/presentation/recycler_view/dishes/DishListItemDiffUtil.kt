@@ -7,30 +7,38 @@ import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.Lis
 
 class DishListItemDiffUtil: DiffUtil.ItemCallback<ListItem>() {
     override fun areItemsTheSame(oldItem: ListItem, newItem: ListItem): Boolean {
-        return if (oldItem is ButtonListItem && newItem is ButtonListItem) {
-            oldItem.id == newItem.id
-        } else if (oldItem is DishListItem && newItem is DishListItem) {
-            oldItem.id == newItem.id
-        } else {
-            false
+        if (oldItem is ButtonListItem && newItem is ButtonListItem) {
+            return oldItem.id == newItem.id
         }
+
+        if (oldItem is DishListItem && newItem is DishListItem) {
+            return oldItem.id == newItem.id
+        }
+
+        return false
     }
 
 
     override fun areContentsTheSame(oldItem: ListItem, newItem: ListItem): Boolean {
-        return if (oldItem is ButtonListItem && newItem is ButtonListItem) {
-            oldItem == newItem
-        } else if (oldItem is DishListItem && newItem is DishListItem) {
-            oldItem == newItem
-        } else {
-            false
+        if (oldItem is ButtonListItem && newItem is ButtonListItem) {
+            return oldItem == newItem
         }
+
+        if (oldItem is DishListItem && newItem is DishListItem) {
+            return oldItem == newItem
+        }
+
+        return false
     }
 
     override fun getChangePayload(oldItem: ListItem, newItem: ListItem): Any? {
         if (oldItem is DishListItem && newItem is DishListItem) {
             if (oldItem.isChecked != newItem.isChecked) {
                 return CHECKED_CHANGE
+            }
+
+            if (oldItem.isEnabled != newItem.isEnabled) {
+                return ENABLED_CHANGE
             }
         }
 
@@ -39,5 +47,6 @@ class DishListItemDiffUtil: DiffUtil.ItemCallback<ListItem>() {
 
     companion object {
         const val CHECKED_CHANGE = "checked_change"
+        const val ENABLED_CHANGE = "enabled_change"
     }
 }

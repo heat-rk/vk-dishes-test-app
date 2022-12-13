@@ -137,8 +137,14 @@ class DishesAdapter(
                 super.bind(item, payloads)
 
                 payloads.forEach {
-                    if (it == DishListItemDiffUtil.CHECKED_CHANGE) {
-                        binding.dishCheckBox.isChecked = item.isChecked
+                    when (it) {
+                        DishListItemDiffUtil.CHECKED_CHANGE -> {
+                            binding.dishCheckBox.isChecked = item.isChecked
+                        }
+
+                        DishListItemDiffUtil.ENABLED_CHANGE -> {
+                            binding.dishCheckBox.isEnabled = item.isEnabled
+                        }
                     }
                 }
             }
