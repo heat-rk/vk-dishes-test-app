@@ -38,7 +38,7 @@ class DishListViewModel(
             state.copy(isDishesProgressVisible = true)
         }
 
-        fetchDishes()
+        fetchDishesNextPage()
     }
 
     fun handleIntent(intent: DishListIntent) {
@@ -76,7 +76,6 @@ class DishListViewModel(
     private fun onSwipeRefresh() {
         loadingJob?.cancel()
         loadingJob = null
-
         isPaginationAvailable = false
 
         _state.update { state ->
@@ -86,12 +85,12 @@ class DishListViewModel(
             )
         }
 
-        fetchDishes()
+        fetchDishesNextPage()
     }
 
     private fun onScrolledToLastPage() {
         if (isPaginationAvailable) {
-            fetchDishes()
+            fetchDishesNextPage()
         }
     }
 
@@ -107,7 +106,7 @@ class DishListViewModel(
     }
 
     private fun onDeleteButtonClick() = viewModelScope.launch {
-        setDishesDeleting(true)
+        setDishesDeletingProgressVisibility(true)
 
         val dishesToDelete = state.value.dishes
             .filter { it.isChecked }
@@ -136,10 +135,10 @@ class DishListViewModel(
             }
         }
 
-        setDishesDeleting(false)
+        setDishesDeletingProgressVisibility(false)
     }
 
-    private fun fetchDishes() = launchLoadingJob {
+    private fun fetchDishesNextPage() = launchLoadingJob {
         val result = withContext(ioDispatcher) {
             fetchDishesUseCase.invoke(state.value.dishes.size, DISHES_LIMIT)
         }
@@ -173,12 +172,12 @@ class DishListViewModel(
         }
     }
 
-    private fun setDishesDeleting(isDeleting: Boolean) {
+    private fun setDishesDeletingProgressVisibility(isVisible: Boolean) {
         _state.update { state ->
             state.copy(
-                dishes = state.dishes.map { it.copy(isEnabled = !isDeleting) },
-                deleteDishesButton = state.deleteDishesButton.copy(isProgressVisible = isDeleting),
-                isSwipeRefreshEnabled = !isDeleting
+                dishes = state.dishes.map { it.copy(isEnabled = !isVisible) },
+                deleteDishesButton = state.deleteDishesButton.copy(isProgressVisible = isVisible),
+                isSwipeRefreshEnabled = !isVisible
             )
         }
     }
