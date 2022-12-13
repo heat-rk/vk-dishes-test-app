@@ -1,14 +1,18 @@
 package com.nlmk.libs.vkdishestestapp.data.repositories
 
 import com.nlmk.libs.vkdishestestapp.data.utils.safeDataCall
+import com.nlmk.libs.vkdishestestapp.di.annotations.IoDispatcher
 import com.nlmk.libs.vkdishestestapp.domain.models.Dish
 import com.nlmk.libs.vkdishestestapp.domain.repositories.DishesRepository
 import com.nlmk.libs.vkdishestestapp.domain.utils.RequestResult
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @Suppress("MaxLineLength", "MagicNumber")
-class DishesRepositoriesImpl @Inject constructor() : DishesRepository {
+class DishesRepositoriesImpl @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : DishesRepository {
     private val dishes = mutableListOf(
         Dish(
             "5ed8da011f071c00465b2026",
@@ -97,7 +101,7 @@ class DishesRepositoriesImpl @Inject constructor() : DishesRepository {
     )
 
     override suspend fun getDishes(offset: Int, limit: Int): RequestResult<List<Dish>> =
-        safeDataCall {
+        safeDataCall(ioDispatcher) {
             delay(1500)
 
             val start = offset.coerceIn(0, dishes.lastIndex)
@@ -107,14 +111,14 @@ class DishesRepositoriesImpl @Inject constructor() : DishesRepository {
         }
 
     override suspend fun getDish(id: String): RequestResult<Dish> =
-        safeDataCall {
+        safeDataCall(ioDispatcher) {
             delay(1000)
             dishes.find { it.id == id }
                 ?: throw IllegalArgumentException("No such dish with id = $id")
         }
 
     override suspend fun removeDishes(ids: List<String>): RequestResult<List<String>> =
-        safeDataCall {
+        safeDataCall(ioDispatcher) {
             delay(1000)
 
             val removedIds = mutableListOf<String>()

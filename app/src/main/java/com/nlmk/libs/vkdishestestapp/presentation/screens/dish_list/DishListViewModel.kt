@@ -9,19 +9,20 @@ import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.utils.RequestResult
 import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
 import com.nlmk.libs.vkdishestestapp.utils.strRes
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import ru.heatalways.vkdishestestapp.R
 
 class DishListViewModel(
     private val fetchDishesUseCase: FetchDishesUseCase,
     private val deleteDishesUseCase: DeleteDishesUseCase,
     private val dishToListItemConverter: ModelConverter<Dish, DishListItem>,
-    private val ioDispatcher: CoroutineDispatcher
 ): ViewModel() {
 
     private val _state = MutableStateFlow(DishListViewState())
@@ -112,11 +113,7 @@ class DishListViewModel(
             .filter { it.isChecked }
             .map { it.id }
 
-        val result = withContext(ioDispatcher) {
-            deleteDishesUseCase.invoke(dishesToDelete)
-        }
-
-        when (result) {
+        when (val result = deleteDishesUseCase.invoke(dishesToDelete)) {
             is RequestResult.Success -> {
                 _state.update { state ->
                     val dishes = state.dishes.filter { it.id !in result.value }
@@ -139,11 +136,7 @@ class DishListViewModel(
     }
 
     private fun fetchDishesNextPage() = launchLoadingJob {
-        val result = withContext(ioDispatcher) {
-            fetchDishesUseCase.invoke(state.value.dishes.size, DISHES_LIMIT)
-        }
-
-        when (result) {
+        when (val result = fetchDishesUseCase.invoke(state.value.dishes.size, DISHES_LIMIT)) {
             is RequestResult.Success -> {
                 _state.update { state ->
                     val dishes =
