@@ -44,34 +44,33 @@ class DishListViewModel(
 
     fun handleIntent(intent: DishListIntent) {
         when (intent) {
-            DishListIntent.OnScrolledToBottom ->
+            DishListIntent.OnScrolledToBottom -> {
                 onScrolledToLastPage()
+            }
 
-            DishListIntent.SwipeRefresh ->
+            DishListIntent.SwipeRefresh -> {
                 onSwipeRefresh()
+            }
 
-            is DishListIntent.OnDishCheckedChange ->
-                onDishCheckedChange(intent.id, intent.isChecked)
+            DishListIntent.OnDeleteDishesButtonClick -> {
+                onDeleteButtonClick()
+            }
 
-            is DishListIntent.OnDishClick ->
-                onDishClick(intent.id)
+            is DishListIntent.OnDishCheckedChange -> {
+                onDishCheckedChange(intent.dish, intent.isChecked)
+            }
 
-            is DishListIntent.OnButtonClick ->
-                onButtonClick(intent.id)
+            is DishListIntent.OnDishClick -> {
+                onDishClick(intent.dish)
+            }
         }
     }
 
-    private fun onDishClick(id: String) = viewModelScope.launch {
+    private fun onDishClick(dish: DishListItem) = viewModelScope.launch {
         _sideEffects.send(DishListSideEffect.NavigateToDetail(
-            id = id,
-            name = state.value.dishes.find { it.id == id }?.name ?: strRes("-")
+            id = dish.id,
+            name = dish.name
         ))
-    }
-
-    private fun onButtonClick(id: String) {
-        if (state.value.deleteDishesButton.id == id) {
-            onDeleteButtonClick()
-        }
     }
 
     private fun onSwipeRefresh() {
@@ -95,11 +94,11 @@ class DishListViewModel(
         }
     }
 
-    private fun onDishCheckedChange(id: String, isChecked: Boolean) {
+    private fun onDishCheckedChange(dish: DishListItem, isChecked: Boolean) {
         _state.update { state ->
             state.copy(
                 dishes = state.dishes.map {
-                    if (it.id == id) it.copy(isChecked = isChecked)
+                    if (it.id == dish.id) it.copy(isChecked = isChecked)
                     else it
                 }
             )
@@ -169,7 +168,7 @@ class DishListViewModel(
         _state.update { state ->
             state.copy(
                 dishes = state.dishes.map { it.copy(isEnabled = !isVisible) },
-                deleteDishesButton = state.deleteDishesButton.copy(isProgressVisible = isVisible),
+                isDeleteDishesButtonProgressVisible = isVisible,
                 isSwipeRefreshEnabled = !isVisible
             )
         }

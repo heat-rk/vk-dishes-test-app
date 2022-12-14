@@ -1,9 +1,11 @@
 package com.nlmk.libs.vkdishestestapp.presentation.screens.dish_list
 
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
+
 sealed interface DishListIntent {
     object SwipeRefresh: DishListIntent
     object OnScrolledToBottom: DishListIntent
-    data class OnButtonClick(val id: String): DishListIntent
-    data class OnDishClick(val id: String): DishListIntent
-    data class OnDishCheckedChange(val id: String, val isChecked: Boolean): DishListIntent
+    object OnDeleteDishesButtonClick: DishListIntent
+    data class OnDishClick(val dish: DishListItem): DishListIntent
+    data class OnDishCheckedChange(val dish: DishListItem, val isChecked: Boolean): DishListIntent
 }

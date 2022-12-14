@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
-import androidx.core.view.marginStart
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -19,9 +18,9 @@ import ru.heatalways.vkdishestestapp.databinding.ItemDishBinding
 import kotlin.math.roundToInt
 
 class DishesAdapter(
-    private val onDishClick: (id: String) -> Unit,
-    private val onDishCheckedChange: (id: String, isChecked: Boolean) -> Unit,
-    private val onButtonClick: (id: String) -> Unit
+    private val onDishClick: (dish: DishListItem) -> Unit,
+    private val onDishCheckedChange: (dish: DishListItem, isChecked: Boolean) -> Unit,
+    private val onButtonClick: (button: ButtonListItem) -> Unit
 ): ListAdapter<ListItem, DishesAdapter.ViewHolder<ListItem>>(DishListItemDiffUtil()) {
 
     @Suppress("UNCHECKED_CAST")
@@ -94,8 +93,8 @@ class DishesAdapter(
 
         class Dish(
             view: View,
-            onClick: (id: String) -> Unit,
-            onCheckedChange: (id: String, isChecked: Boolean) -> Unit
+            onClick: (dish: DishListItem) -> Unit,
+            onCheckedChange: (dish: DishListItem, isChecked: Boolean) -> Unit,
         ): ViewHolder<DishListItem>(view) {
 
             private val binding = ItemDishBinding.bind(view)
@@ -105,7 +104,7 @@ class DishesAdapter(
                     val adapterPosition = adapterPosition
 
                     if (adapterPosition != RecyclerView.NO_POSITION) {
-                        onClick(item.id)
+                        onClick(item)
                     }
                 }
 
@@ -113,7 +112,7 @@ class DishesAdapter(
                     val adapterPosition = adapterPosition
 
                     if (adapterPosition != RecyclerView.NO_POSITION) {
-                        onCheckedChange(item.id, isChecked)
+                        onCheckedChange(item, isChecked)
                     }
                 }
             }
@@ -136,8 +135,8 @@ class DishesAdapter(
             override fun bind(item: DishListItem, payloads: List<Any>) {
                 super.bind(item, payloads)
 
-                payloads.forEach {
-                    when (it) {
+                payloads.forEach { payload ->
+                    when (payload) {
                         DishListItemDiffUtil.CHECKED_CHANGE -> {
                             binding.dishCheckBox.isChecked = item.isChecked
                         }
@@ -152,7 +151,7 @@ class DishesAdapter(
 
         class Button(
             private val button: MaterialButton,
-            onClick: (id: String) -> Unit
+            onClick: (button: ButtonListItem) -> Unit
         ): ViewHolder<ButtonListItem>(button) {
 
             init {
@@ -160,7 +159,7 @@ class DishesAdapter(
                     val adapterPosition = adapterPosition
 
                     if (adapterPosition != RecyclerView.NO_POSITION) {
-                        onClick(item.id)
+                        onClick(item)
                     }
                 }
             }
@@ -168,9 +167,12 @@ class DishesAdapter(
             override fun bind(item: ButtonListItem) {
                 super.bind(item)
 
-                button.isEnabled = !item.isProgressVisible
+                button.isEnabled = item.isEnabled && !item.isProgressVisible
+                button.setProgressVisibility(item.isProgressVisible)
+            }
 
-                button.text = if (item.isProgressVisible) {
+            private fun MaterialButton.setProgressVisibility(isVisible: Boolean) {
+                text = if (isVisible) {
                     context.getString(R.string.loading)
                 } else {
                     context.getString(item.text)

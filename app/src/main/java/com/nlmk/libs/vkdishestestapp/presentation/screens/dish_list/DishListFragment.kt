@@ -12,11 +12,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.DishesAdapter
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.ButtonListItem
 import com.nlmk.libs.vkdishestestapp.presentation.screens.ViewModelsFactoryProvider
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetailFragment
 import com.nlmk.libs.vkdishestestapp.utils.getString
 import com.nlmk.libs.vkdishestestapp.utils.launchCollect
 import com.nlmk.libs.vkdishestestapp.utils.repeatOnStart
+import com.nlmk.libs.vkdishestestapp.utils.strRes
 import dagger.hilt.android.AndroidEntryPoint
 import ru.heatalways.vkdishestestapp.R
 import ru.heatalways.vkdishestestapp.databinding.FragmentDishListBinding
@@ -48,15 +50,19 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
         _navController = findNavController()
 
         _dishesAdapter = DishesAdapter(
-            onDishClick = { id ->
-                viewModel.handleIntent(DishListIntent.OnDishClick(id))
+            onDishClick = { dish ->
+                viewModel.handleIntent(DishListIntent.OnDishClick(dish))
             },
-            onDishCheckedChange = { id, isChecked ->
-                viewModel.handleIntent(DishListIntent.OnDishCheckedChange(id, isChecked))
+            onDishCheckedChange = { dish, isChecked ->
+                viewModel.handleIntent(DishListIntent.OnDishCheckedChange(dish, isChecked))
             },
 
-            onButtonClick = { id ->
-                viewModel.handleIntent(DishListIntent.OnButtonClick(id))
+            onButtonClick = { button ->
+                when (button.id) {
+                    DELETE_DISHES_BUTTON_ID -> {
+                        viewModel.handleIntent(DishListIntent.OnDeleteDishesButtonClick)
+                    }
+                }
             }
         )
 
@@ -109,7 +115,14 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
         }
 
         if (state.dishes.isNotEmpty()) {
-            dishesAdapter.submitList(state.dishes + state.deleteDishesButton)
+            val deleteDishesButton = ButtonListItem(
+                id = DELETE_DISHES_BUTTON_ID,
+                text = strRes(R.string.delete_selected),
+                isEnabled = state.isDeleteDishesButtonEnabled,
+                isProgressVisible = state.isDeleteDishesButtonProgressVisible
+            )
+
+            dishesAdapter.submitList(state.dishes + deleteDishesButton)
         } else {
             dishesAdapter.submitList(state.dishes)
         }
@@ -138,6 +151,7 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
     }
 
     companion object {
+        private const val DELETE_DISHES_BUTTON_ID = "delete_dishes_button"
         private const val PAGINATION_FACTOR = 1.6f
     }
 }
