@@ -1,11 +1,13 @@
 package com.nlmk.libs.vkdishestestapp.domain.use_cases
 
 import com.nlmk.libs.vkdishestestapp.domain.repositories.DishesRepository
+import dagger.Reusable
 import javax.inject.Inject
 
-class DeleteDishesUseCaseImpl @Inject constructor(
+@Reusable
+class GetDishUseCase @Inject constructor(
     private val dishesRepository: DishesRepository
-): DeleteDishesUseCase {
-    override suspend fun invoke(ids: List<String>) =
-        dishesRepository.removeDishes(ids)
+) {
+    suspend fun invoke(id: String) =
+        dishesRepository.getDish(id)
 }

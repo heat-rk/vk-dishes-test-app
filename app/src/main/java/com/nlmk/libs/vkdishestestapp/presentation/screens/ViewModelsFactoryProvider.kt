@@ -6,8 +6,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nlmk.libs.vkdishestestapp.converters.ModelConverter
 import com.nlmk.libs.vkdishestestapp.domain.models.Dish
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.DeleteDishesUseCase
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishUseCase
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishesUseCase
+import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishUseCase
+import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishesUseCase
 import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetail
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetailViewModel
@@ -17,8 +17,8 @@ import javax.inject.Inject
 
 @Reusable
 class ViewModelsFactoryProvider @Inject constructor(
-    private val fetchDishesUseCase: FetchDishesUseCase,
-    private val fetchDishUseCase: FetchDishUseCase,
+    private val getDishesUseCase: GetDishesUseCase,
+    private val getDishUseCase: GetDishUseCase,
     private val deleteDishesUseCase: DeleteDishesUseCase,
     private val dishToListItemConverter: ModelConverter<Dish, DishListItem>,
     private val dishToDetailConverter: ModelConverter<Dish, DishDetail>,
@@ -29,7 +29,7 @@ class ViewModelsFactoryProvider @Inject constructor(
     val factory = viewModelFactory {
         initializer {
             DishListViewModel(
-                fetchDishesUseCase = fetchDishesUseCase,
+                getDishesUseCase = getDishesUseCase,
                 deleteDishesUseCase = deleteDishesUseCase,
                 dishToListItemConverter = dishToListItemConverter,
             )
@@ -38,7 +38,7 @@ class ViewModelsFactoryProvider @Inject constructor(
         initializer {
             DishDetailViewModel(
                 id = requireNotNull(get(IdKey)),
-                fetchDishUseCase = fetchDishUseCase,
+                getDishUseCase = getDishUseCase,
                 dishToDetailConverter = dishToDetailConverter,
             )
         }

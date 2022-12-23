@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nlmk.libs.vkdishestestapp.converters.ModelConverter
 import com.nlmk.libs.vkdishestestapp.domain.models.Dish
-import com.nlmk.libs.vkdishestestapp.domain.use_cases.FetchDishUseCase
+import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishUseCase
 import com.nlmk.libs.vkdishestestapp.domain.utils.RequestResult
 import com.nlmk.libs.vkdishestestapp.utils.strRes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import ru.heatalways.vkdishestestapp.R
 
 class DishDetailViewModel(
     private val id: String,
-    private val fetchDishUseCase: FetchDishUseCase,
+    private val getDishUseCase: GetDishUseCase,
     private val dishToDetailConverter: ModelConverter<Dish, DishDetail>,
 ): ViewModel() {
     private val _state = MutableStateFlow(DishDetailViewState())
@@ -23,7 +23,7 @@ class DishDetailViewModel(
 
     init {
         viewModelScope.launch {
-            when (val result = fetchDishUseCase.invoke(id)) {
+            when (val result = getDishUseCase.invoke(id)) {
                 is RequestResult.Success -> {
                     _state.update { state ->
                         state.copy(
