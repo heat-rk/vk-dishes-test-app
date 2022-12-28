@@ -9,34 +9,32 @@ import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.utils.RequestResult
 import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
 import com.nlmk.libs.vkdishestestapp.utils.strRes
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import ru.heatalways.vkdishestestapp.R
 
 class DishListViewModel(
-    private val getDishesUseCase: GetDishesUseCase,
-    private val deleteDishesUseCase: DeleteDishesUseCase,
+    private val getDishes: GetDishesUseCase,
+    private val deleteDishes: DeleteDishesUseCase,
     private val dishToListItemConverter: ModelConverter<Dish, DishListItem>,
 ): ViewModel() {
 
-    private val _state = MutableStateFlow(DishListViewState())
+    private val _state = MutableStateFlow<DishListViewState>(DishListViewState.Loading)
     val state = _state.asStateFlow()
 
     private val _sideEffects = Channel<DishListSideEffect>(Channel.BUFFERED)
     val sideEffects = _sideEffects.receiveAsFlow()
 
     private var isPaginationAvailable = false
-    private var loadingJob: Job? = null
+    private val loadingJobs = mutableListOf<Job>()
 
     init {
-        _state.update { state ->
-            state.copy(isDishesProgressVisible = true)
-        }
-
         fetchDishesNextPage()
     }
 
@@ -72,17 +70,10 @@ class DishListViewModel(
     }
 
     private fun onSwipeRefresh() {
-        loadingJob?.cancel()
-        loadingJob = null
+        loadingJobs.forEach { it.cancel() }
+        loadingJobs.clear()
         isPaginationAvailable = false
-
-        _state.update { state ->
-            state.copy(
-                dishes = emptyList(),
-                isSwipeRefreshing = true
-            )
-        }
-
+        _state.value = DishListViewState.SwipeRefreshing
         fetchDishesNextPage()
     }
 
@@ -93,90 +84,108 @@ class DishListViewModel(
     }
 
     private fun onDishCheckedChange(dish: DishListItem, isChecked: Boolean) {
-        _state.update { state ->
-            state.copy(
-                dishes = state.dishes.map {
-                    if (it.id == dish.id) it.copy(isChecked = isChecked)
-                    else it
-                }
-            )
-        }
+        val state = requireState<DishListViewState.Ok>()
+
+        _state.value = state.copy(
+            dishes = state.dishes.map {
+                if (it.id == dish.id) it.copy(isChecked = isChecked)
+                else it
+            }
+        )
     }
 
     private fun onDeleteButtonClick() = viewModelScope.launch {
-        setDishesDeletingProgressVisibility(true)
+        val state = requireState<DishListViewState.Ok>()
 
-        val dishesToDelete = state.value.dishes
+        _state.value = state.copy(isDishesDeleting = true)
+
+        val dishesToDelete = state.dishes
             .filter { it.isChecked }
             .map { it.id }
 
-        when (val result = deleteDishesUseCase.invoke(dishesToDelete)) {
+        when (val result = deleteDishes(dishesToDelete)) {
             is RequestResult.Success -> {
-                _state.update { state ->
-                    val dishes = state.dishes.filter { it.id !in result.value }
+                val dishes = state.dishes.filter { it.id !in result.value }
 
+                _state.value = if (dishes.isNotEmpty()) {
                     state.copy(
                         dishes = dishes,
-                        error = if (dishes.isEmpty()) strRes(R.string.list_empty) else null
+                        isDishesDeleting = false
                     )
+                } else {
+                    DishListViewState.Error(strRes(R.string.list_empty))
                 }
 
                 _sideEffects.send(DishListSideEffect.Message(strRes(R.string.dishes_delete_success)))
             }
 
             is RequestResult.Failure -> {
+                _state.value = state.copy(isDishesDeleting = false)
                 _sideEffects.send(DishListSideEffect.Message(strRes(R.string.something_went_wrong)))
             }
         }
-
-        setDishesDeletingProgressVisibility(false)
     }
 
     private fun fetchDishesNextPage() = launchLoadingJob {
-        when (val result = getDishesUseCase.invoke(state.value.dishes.size, DISHES_LIMIT)) {
+        when (val result = getDishes(
+            offset = getAlreadyLoadedDishes().size,
+            limit = DISHES_LIMIT
+        )) {
             is RequestResult.Success -> {
-                _state.update { state ->
-                    val dishes =
-                        state.dishes + result.value.map { dishToListItemConverter.convert(it) }
+                val dishes =
+                    getAlreadyLoadedDishes() + result.value.map { dishToListItemConverter.convert(it) }
 
-                    state.copy(
-                        isDishesProgressVisible = false,
-                        isSwipeRefreshing = false,
-                        dishes = dishes,
-                        error = if (dishes.isEmpty()) strRes(R.string.list_empty) else null
-                    )
+                ensureActive()
+
+                _state.value = if (dishes.isNotEmpty()) {
+                    DishListViewState.Ok(dishes = dishes)
+                } else {
+                    DishListViewState.Error(strRes(R.string.list_empty))
                 }
 
                 isPaginationAvailable = result.value.isNotEmpty()
             }
 
             is RequestResult.Failure -> {
-                _state.update { state ->
-                    state.copy(
-                        isDishesProgressVisible = false,
-                        isSwipeRefreshing = false,
-                        error = strRes(R.string.something_went_wrong)
-                    )
-                }
+                ensureActive()
+
+                _state.value = DishListViewState.Error(
+                    message = strRes(R.string.something_went_wrong)
+                )
             }
         }
     }
 
-    private fun setDishesDeletingProgressVisibility(isVisible: Boolean) {
-        _state.update { state ->
-            state.copy(
-                dishes = state.dishes.map { it.copy(isEnabled = !isVisible) },
-                isDeleteDishesButtonProgressVisible = isVisible,
-                isSwipeRefreshEnabled = !isVisible
-            )
+    private fun getAlreadyLoadedDishes(): List<DishListItem> {
+        val state = state.value
+
+        return if (state is DishListViewState.Ok) {
+            state.dishes
+        } else {
+            emptyList()
         }
     }
 
-    private fun launchLoadingJob(block: suspend CoroutineScope.() -> Unit) {
-        loadingJob = viewModelScope.launch {
-            block()
-            loadingJob = null
+    private inline fun <reified T: DishListViewState> requireState(): T {
+        val state = state.value
+
+        if (state !is T) {
+            throw IllegalStateException("${T::class.simpleName} required for this operation!")
         }
+
+        return state
+    }
+
+    private fun launchLoadingJob(block: suspend CoroutineScope.() -> Unit) {
+        val job = viewModelScope.launch {
+            block()
+        }
+
+        job.invokeOnCompletion {
+            loadingJobs.remove(job)
+        }
+
+        loadingJobs.add(job)
     }
 
     companion object {

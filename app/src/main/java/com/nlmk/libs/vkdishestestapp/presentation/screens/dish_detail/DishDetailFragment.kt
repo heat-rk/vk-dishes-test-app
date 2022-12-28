@@ -48,20 +48,40 @@ class DishDetailFragment: Fragment(R.layout.fragment_dish_detail) {
     }
 
     private fun render(state: DishDetailViewState) {
-        binding.dishContent.isInvisible = state.isLoading || state.error != null
-        binding.dishProgressIndicator.isVisible = state.isLoading
-        binding.errorTextView.isVisible = state.error != null
+        when (state) {
+            is DishDetailViewState.Ok -> renderOkState(state)
+            is DishDetailViewState.Error -> renderErrorState(state)
+            DishDetailViewState.Loading -> renderLoadingState()
+        }
+    }
 
-        binding.errorTextView.text = requireContext().getString(state.error)
-        binding.dishName.text = requireContext().getString(state.detail.name)
-        binding.dishDescription.text = requireContext().getString(state.detail.description)
-        binding.dishPrice.text = requireContext().getString(state.detail.price)
+    private fun renderOkState(state: DishDetailViewState.Ok) {
+        binding.dishContent.isVisible = true
+        binding.dishProgressIndicator.isVisible = false
+        binding.errorTextView.isVisible = false
+
+        binding.dishName.text = requireContext().getString(state.body.name)
+        binding.dishDescription.text = requireContext().getString(state.body.description)
+        binding.dishPrice.text = requireContext().getString(state.body.price)
 
         Glide.with(requireContext())
-            .load(state.detail.image)
+            .load(state.body.image)
             .placeholder(R.drawable.ic_dish_placeholder)
             .error(R.drawable.ic_dish_placeholder)
             .into(binding.dishImage)
+    }
+
+    private fun renderErrorState(state: DishDetailViewState.Error) {
+        binding.dishContent.isInvisible = true
+        binding.dishProgressIndicator.isVisible = false
+        binding.errorTextView.isVisible = true
+        binding.errorTextView.text = requireContext().getString(state.message)
+    }
+
+    private fun renderLoadingState() {
+        binding.dishContent.isInvisible = true
+        binding.dishProgressIndicator.isVisible = true
+        binding.errorTextView.isVisible = false
     }
 
     override fun onDestroyView() {

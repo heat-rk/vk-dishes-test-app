@@ -20,10 +20,9 @@
             <ImageView
                 android:id="@+id/dishImage"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/detail_dish_image_height"
                 android:contentDescription="@string/dish_image_content_description"
                 android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
                 tools:src="@tools:sample/backgrounds/scenic" />
 
             <TextView

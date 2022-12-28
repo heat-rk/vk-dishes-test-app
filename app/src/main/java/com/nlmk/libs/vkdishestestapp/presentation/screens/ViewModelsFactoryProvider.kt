@@ -29,8 +29,8 @@ class ViewModelsFactoryProvider @Inject constructor(
     val factory = viewModelFactory {
         initializer {
             DishListViewModel(
-                getDishesUseCase = getDishesUseCase,
-                deleteDishesUseCase = deleteDishesUseCase,
+                getDishes = getDishesUseCase,
+                deleteDishes = deleteDishesUseCase,
                 dishToListItemConverter = dishToListItemConverter,
             )
         }
@@ -38,7 +38,7 @@ class ViewModelsFactoryProvider @Inject constructor(
         initializer {
             DishDetailViewModel(
                 id = requireNotNull(get(IdKey)),
-                getDishUseCase = getDishUseCase,
+                getDish = getDishUseCase,
                 dishToDetailConverter = dishToDetailConverter,
             )
         }

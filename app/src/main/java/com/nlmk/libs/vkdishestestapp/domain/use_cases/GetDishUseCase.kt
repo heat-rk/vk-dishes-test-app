@@ -8,6 +8,6 @@ import javax.inject.Inject
 class GetDishUseCase @Inject constructor(
     private val dishesRepository: DishesRepository
 ) {
-    suspend fun invoke(id: String) =
+    suspend operator fun invoke(id: String) =
         dishesRepository.getDish(id)
 }

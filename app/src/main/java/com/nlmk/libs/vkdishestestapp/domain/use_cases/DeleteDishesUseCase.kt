@@ -8,6 +8,6 @@ import javax.inject.Inject
 class DeleteDishesUseCase @Inject constructor(
     private val dishesRepository: DishesRepository
 ) {
-    suspend fun invoke(ids: List<String>) =
+    suspend operator fun invoke(ids: List<String>) =
         dishesRepository.removeDishes(ids)
 }

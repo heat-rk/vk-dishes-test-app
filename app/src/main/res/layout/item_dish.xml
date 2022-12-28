@@ -11,8 +11,8 @@
 
     <ImageView
         android:id="@+id/dishImage"
-        android:layout_width="@dimen/item_dish_image_size"
-        android:layout_height="@dimen/item_dish_image_size"
+        android:layout_width="@dimen/list_item_dish_image_size"
+        android:layout_height="@dimen/list_item_dish_image_size"
         android:layout_gravity="center_vertical"
         android:contentDescription="@string/dish_image_content_description"
         tools:src="@tools:sample/avatars"/>

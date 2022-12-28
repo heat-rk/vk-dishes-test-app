@@ -104,27 +104,58 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
     }
 
     private fun render(state: DishListViewState) {
-        binding.errorTextView.isVisible = state.error != null
-        binding.dishesRecyclerView.isVisible = state.error == null
-        binding.dishesProgressIndicator.isVisible = state.isDishesProgressVisible
-        binding.swipeRefreshLayout.isRefreshing = state.isSwipeRefreshing
-        binding.swipeRefreshLayout.isEnabled = state.isSwipeRefreshEnabled
+        when (state) {
+            is DishListViewState.Ok -> renderOkState(state)
+            is DishListViewState.Error -> renderErrorState(state)
+            DishListViewState.Loading -> renderLoadingState()
+            DishListViewState.SwipeRefreshing -> renderSwipeRefreshingState()
+        }
+    }
 
-        if (state.error != null) {
-            binding.errorTextView.text = requireContext().getString(state.error)
+    private fun renderSwipeRefreshingState() {
+        binding.dishesProgressIndicator.isVisible = false
+        binding.swipeRefreshLayout.isRefreshing = true
+    }
+
+    private fun renderLoadingState() {
+        binding.errorTextView.isVisible = false
+        binding.dishesRecyclerView.isVisible = false
+        binding.dishesProgressIndicator.isVisible = true
+        binding.swipeRefreshLayout.isRefreshing = false
+    }
+
+    private fun renderErrorState(state: DishListViewState.Error) {
+        binding.errorTextView.isVisible = true
+        binding.dishesRecyclerView.isVisible = false
+        binding.dishesProgressIndicator.isVisible = false
+        binding.swipeRefreshLayout.isRefreshing = false
+        binding.errorTextView.text = requireContext().getString(state.message)
+    }
+
+    private fun renderOkState(state: DishListViewState.Ok) {
+        binding.errorTextView.isVisible = false
+        binding.dishesRecyclerView.isVisible = true
+        binding.dishesProgressIndicator.isVisible = false
+        binding.swipeRefreshLayout.isRefreshing = false
+        binding.swipeRefreshLayout.isEnabled = !state.isDishesDeleting
+
+        val dishes = state.dishes.map {
+            it.copy(
+                isEnabled = !state.isDishesDeleting
+            )
         }
 
-        if (state.dishes.isNotEmpty()) {
+        if (dishes.isNotEmpty()) {
             val deleteDishesButton = ButtonListItem(
                 id = DELETE_DISHES_BUTTON_ID,
                 text = strRes(R.string.delete_selected),
                 isEnabled = state.isDeleteDishesButtonEnabled,
-                isProgressVisible = state.isDeleteDishesButtonProgressVisible
+                isProgressVisible = state.isDishesDeleting
             )
 
-            dishesAdapter.submitList(state.dishes + deleteDishesButton)
+            dishesAdapter.submitList(dishes + deleteDishesButton)
         } else {
-            dishesAdapter.submitList(state.dishes)
+            dishesAdapter.submitList(dishes)
         }
     }
 
