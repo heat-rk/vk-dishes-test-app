@@ -4,7 +4,7 @@ import com.nlmk.libs.vkdishestestapp.converters.DishToDetailConverter
 import com.nlmk.libs.vkdishestestapp.converters.DishToListItemConverter
 import com.nlmk.libs.vkdishestestapp.converters.ModelConverter
 import com.nlmk.libs.vkdishestestapp.domain.models.Dish
-import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishesListDishItem
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetail
 import dagger.Binds
 import dagger.Module
@@ -19,7 +19,7 @@ interface ConvertersModule {
     @Reusable
     fun bindDishToListItemConverter(
         impl: DishToListItemConverter
-    ): ModelConverter<Dish, DishListItem>
+    ): ModelConverter<Dish, DishesListDishItem>
 
     @Binds
     @Reusable

@@ -7,7 +7,7 @@ import com.nlmk.libs.vkdishestestapp.domain.models.Dish
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.DeleteDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.utils.RequestResult
-import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishesListDishItem
 import com.nlmk.libs.vkdishestestapp.utils.strRes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -22,7 +22,7 @@ import ru.heatalways.vkdishestestapp.R
 class DishListViewModel(
     private val getDishes: GetDishesUseCase,
     private val deleteDishes: DeleteDishesUseCase,
-    private val dishToListItemConverter: ModelConverter<Dish, DishListItem>,
+    private val dishToListItemConverter: ModelConverter<Dish, DishesListDishItem>,
 ): ViewModel() {
 
     private val _state = MutableStateFlow<DishListViewState>(DishListViewState.Loading)
@@ -62,7 +62,7 @@ class DishListViewModel(
         }
     }
 
-    private fun onDishClick(dish: DishListItem) = viewModelScope.launch {
+    private fun onDishClick(dish: DishesListDishItem) = viewModelScope.launch {
         _sideEffects.send(DishListSideEffect.NavigateToDetail(
             id = dish.id,
             name = dish.name
@@ -83,7 +83,7 @@ class DishListViewModel(
         }
     }
 
-    private fun onDishCheckedChange(dish: DishListItem, isChecked: Boolean) {
+    private fun onDishCheckedChange(dish: DishesListDishItem, isChecked: Boolean) {
         val state = requireState<DishListViewState.Ok>()
 
         _state.value = state.copy(
@@ -156,7 +156,7 @@ class DishListViewModel(
         }
     }
 
-    private fun getAlreadyLoadedDishes(): List<DishListItem> {
+    private fun getAlreadyLoadedDishes(): List<DishesListDishItem> {
         val state = state.value
 
         return if (state is DishListViewState.Ok) {

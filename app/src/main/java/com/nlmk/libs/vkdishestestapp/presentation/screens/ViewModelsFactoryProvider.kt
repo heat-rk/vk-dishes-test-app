@@ -8,7 +8,7 @@ import com.nlmk.libs.vkdishestestapp.domain.models.Dish
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.DeleteDishesUseCase
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishUseCase
 import com.nlmk.libs.vkdishestestapp.domain.use_cases.GetDishesUseCase
-import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItem
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishesListDishItem
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetail
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetailViewModel
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_list.DishListViewModel
@@ -20,7 +20,7 @@ class ViewModelsFactoryProvider @Inject constructor(
     private val getDishesUseCase: GetDishesUseCase,
     private val getDishUseCase: GetDishUseCase,
     private val deleteDishesUseCase: DeleteDishesUseCase,
-    private val dishToListItemConverter: ModelConverter<Dish, DishListItem>,
+    private val dishToListItemConverter: ModelConverter<Dish, DishesListDishItem>,
     private val dishToDetailConverter: ModelConverter<Dish, DishDetail>,
 ) {
 

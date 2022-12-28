@@ -11,8 +11,12 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.DishesAdapter
-import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.ButtonListItem
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.CompositeAdapter
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.DishesListDishAdapterPartition
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.DishesListButtonAdapterPartition
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishListItemDiffUtil
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishesListButtonItem
+import com.nlmk.libs.vkdishestestapp.presentation.recycler_view.dishes.items.DishesListItem
 import com.nlmk.libs.vkdishestestapp.presentation.screens.ViewModelsFactoryProvider
 import com.nlmk.libs.vkdishestestapp.presentation.screens.dish_detail.DishDetailFragment
 import com.nlmk.libs.vkdishestestapp.utils.getString
@@ -37,7 +41,7 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
     private var _binding: FragmentDishListBinding? = null
     private val binding get() = requireNotNull(_binding)
 
-    private var _dishesAdapter: DishesAdapter? = null
+    private var _dishesAdapter: CompositeAdapter<DishesListItem>? = null
     private val dishesAdapter get() = requireNotNull(_dishesAdapter)
 
     private var _navController: NavController? = null
@@ -49,21 +53,28 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
         _binding = FragmentDishListBinding.bind(view)
         _navController = findNavController()
 
-        _dishesAdapter = DishesAdapter(
-            onDishClick = { dish ->
-                viewModel.handleIntent(DishListIntent.OnDishClick(dish))
-            },
-            onDishCheckedChange = { dish, isChecked ->
-                viewModel.handleIntent(DishListIntent.OnDishCheckedChange(dish, isChecked))
-            },
-
-            onButtonClick = { button ->
-                when (button.id) {
-                    DELETE_DISHES_BUTTON_ID -> {
-                        viewModel.handleIntent(DishListIntent.OnDeleteDishesButtonClick)
+        _dishesAdapter = CompositeAdapter(
+            diffUtilItemCallback = DishListItemDiffUtil(),
+            partitions = arrayOf(
+                DishesListDishAdapterPartition(
+                    onClick = { dish ->
+                        viewModel.handleIntent(DishListIntent.OnDishClick(dish))
+                    },
+                    onCheckedChange = { dish, isChecked ->
+                        viewModel.handleIntent(DishListIntent.OnDishCheckedChange(dish, isChecked))
                     }
-                }
-            }
+                ),
+
+                DishesListButtonAdapterPartition(
+                    onClick = { button ->
+                        when (button.id) {
+                            DELETE_DISHES_BUTTON_ID -> {
+                                viewModel.handleIntent(DishListIntent.OnDeleteDishesButtonClick)
+                            }
+                        }
+                    }
+                )
+            )
         )
 
         with(binding) {
@@ -146,7 +157,7 @@ class DishListFragment: Fragment(R.layout.fragment_dish_list) {
         }
 
         if (dishes.isNotEmpty()) {
-            val deleteDishesButton = ButtonListItem(
+            val deleteDishesButton = DishesListButtonItem(
                 id = DELETE_DISHES_BUTTON_ID,
                 text = strRes(R.string.delete_selected),
                 isEnabled = state.isDeleteDishesButtonEnabled,
